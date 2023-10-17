@@ -4,12 +4,11 @@ import backtrader.analyzers as btanalyzers
 import yfinance as yf
 from strategies import *
 
-
 if __name__ == "__main__":
     tickers = {"QSR": 1.0}
 
     for ticker, target in tickers.items():
-        data = yf.download(ticker, start="2010-01-01", end="2020-12-31")
+        data = yf.download(ticker, start="2018-01-01", end="2022-12-31")
         data = bt.feeds.PandasData(dataname=data)
         data.target = target
 
@@ -26,6 +25,7 @@ if __name__ == "__main__":
         print(f'Starting Portfolio Value: %.2f' % cerebro.broker.getvalue())
         back = cerebro.run()
         print(f'Final Portfolio Value: %.2f' % cerebro.broker.getvalue())
+        print(((cerebro.broker.getvalue()/1000000.0)-1)*100)
 
         sharpe = back[0].analyzers.sharpe.get_analysis()
         trans = back[0].analyzers.trans.get_analysis()
@@ -54,7 +54,6 @@ if __name__ == "__main__":
         # Execute the strategy
         back = cerebro.run()
         print(f'Portfolio Value on {specific_date}: %.2f' % cerebro.broker.getvalue())
-        print(((cerebro.broker.getvalue()/1000000.0)-1)*100)
 
     except Exception as e:
         print(f"Data is not available for {specific_date}. Error: {e}")

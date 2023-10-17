@@ -58,8 +58,6 @@ class TestStrategy(bt.Strategy):
 #                self.log('SELL CREATE, %.2f' % self.dataclose[0])
 #                self.sell()
 
-
-
 class MaCrossStrategy(bt.Strategy):
  
     def __init__(self):
