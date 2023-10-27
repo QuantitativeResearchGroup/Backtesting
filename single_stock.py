@@ -30,11 +30,9 @@ if __name__ == "__main__":
         sharpe = back[0].analyzers.sharpe.get_analysis()
         trans = back[0].analyzers.trans.get_analysis()
         trades = back[0].analyzers.trades.get_analysis()
-
-        # Plot the results
         cerebro.plot()[0]
 
-    # fix here
+    # specific dates
     specific_dates = ["2013-01-05", "2016-07-04", "2019-01-01"]  
 
     for date in specific_dates:
@@ -51,7 +49,6 @@ if __name__ == "__main__":
         cerebro.broker.setcash(1000000.0)
         cerebro.addsizer(bt.sizers.PercentSizer, percents=10)
 
-        # Execute the strategy
         back = cerebro.run()
         print(f'Portfolio Value on {specific_date}: %.2f' % cerebro.broker.getvalue())
 
