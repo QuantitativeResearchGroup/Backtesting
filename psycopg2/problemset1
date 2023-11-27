@@ -1,0 +1,43 @@
+import psycopg2
+
+# Establish a connection to the PostgreSQL database
+conn = psycopg2.connect(
+    dbname='MyDatabase',
+    user='postgres',
+    password='bobwashere',
+    host='localhost',
+    port=5432  # Port should be an integer, not a string
+)
+
+# Create a cursor to execute SQL queries
+cur = conn.cursor()
+
+# Create a new table if it doesn't exist
+cur.execute('''
+    CREATE TABLE IF NOT EXISTS books (
+        title VARCHAR UNIQUE,  -- Add a UNIQUE constraint to ensure title uniqueness
+        author VARCHAR,
+        publication_year INTEGER
+    )
+''')
+
+try:
+    # Insert data into the table
+    cur.execute("INSERT INTO books (title, author, publication_year) VALUES (%s, %s, %s)", ('Great Expectations', 'Charles Dickens', 1861))
+    cur.execute("INSERT INTO books (title, author, publication_year) VALUES (%s, %s, %s)", ('Ulysses', 'James Joyce', 1920))
+
+    # Commit the changes to the database
+    conn.commit()
+
+except Exception as e:
+    # Handle exceptions here, e.g., duplicate entry
+    print(f"Error: {e}")
+
+# Retrieve and display data
+cur.execute("SELECT * FROM books")
+for row in cur.fetchall():
+    print(row)
+
+# Close the cursor and the connection
+cur.close()
+conn.close()

@@ -1,0 +1,125 @@
+import psycopg2
+import pandas as pd
+import yfinance as yf
+from pulldata import *
+from datetime import datetime
+
+# Suppress pandas warnings
+pd.options.mode.chained_assignment = None
+
+# Get the list of S&P 500 tickers
+url = 'https://en.wikipedia.org/wiki/List_of_S%26P_500_companies'
+table = pd.read_html(url)[0]
+tickers = table['Symbol'].str.replace('.', '-').to_list()
+tickers = tickers[0:2]
+a, b, c, d = pulldata(tickers)
+
+print(b)
+
+# Establish a connection to the PostgreSQL database
+conn = psycopg2.connect(
+    dbname='MyDatabase',
+    user='postgres',
+    password='bobwashere',
+    host='localhost',
+    port=5432
+)
+
+# Create a cursor to execute SQL queries
+cur = conn.cursor()
+
+# Create the "IncomeStatement" table if it doesn't exist
+create_income_statement_table_query = """
+CREATE TABLE IF NOT EXISTS IncomeStatement (
+    "Ticker" VARCHAR(10) PRIMARY KEY,
+    "TotalRevenue" NUMERIC(10, 2),
+    "CostOfGoodsSoldInclDA" NUMERIC(10, 2),
+    "GrossProfit" NUMERIC(10, 2),
+    "SellingGeneralandAdministrativeExclOther" NUMERIC(10, 2),
+    "OtherOperatingExpense" NUMERIC(10, 2),
+    "OperatingIncome" NUMERIC(10, 2),
+    "InterestExpense" NUMERIC(10, 2),
+    "UnusualExpense" NUMERIC(10, 2),
+    "NetIncomeBeforeTaxes" NUMERIC(10, 2),
+    "IncomeTaxes" NUMERIC(10, 2),
+    "ConsolidatedNetIncome" NUMERIC(10, 2),
+    "NetIncomefromContinuingOperations" NUMERIC(10, 2),
+    "NetIncome" NUMERIC(10, 2),
+    "EPSrecurring" NUMERIC(10, 2),
+    "EPSBasicBeforeExtraordinaries" NUMERIC(10, 2),
+    "EPSDiluted" NUMERIC(10, 2),
+    "EBITDA" NUMERIC(10, 2),
+    "PricetoEarningsRatio" NUMERIC(10, 2),
+    "PricetoSalesRatio" NUMERIC(10, 2),
+    "GrossMargin" NUMERIC(10, 2),
+    "OperatingMargin" NUMERIC(10, 2),
+    "NetMargin" NUMERIC(10, 2),
+    "SharesOutstanding" NUMERIC(10, 2),
+    "MarketCapitalization" NUMERIC(10, 2)
+);
+"""
+cur.execute(create_income_statement_table_query)
+
+# Load data from the DataFrame into the "IncomeStatement" table, updating if records with the same Ticker already exist
+for index, row in b.iterrows():
+    ticker = row['Ticker']
+
+    # Check if the record with the same Ticker already exists
+    check_query = "SELECT COUNT(*) FROM IncomeStatement WHERE \"Ticker\" = %s;"
+    cur.execute(check_query, (ticker,))
+    count = cur.fetchone()[0]
+
+    if count > 0:
+        # Update the existing record
+        update_query = """UPDATE IncomeStatement
+        SET "TotalRevenue" = %s, "CostofGoodsSoldInclDA" = %s, "GrossProfit" = %s,
+            "SellingGeneralandAdministrativeExclOther" = %s, "OtherOperatingExpense" = %s,
+            "OperatingIncome" = %s, "InterestExpense" = %s, "UnusualExpense" = %s,
+            "NetIncomeBeforeTaxes" = %s, "IncomeTaxes" = %s, "ConsolidatedNetIncome" = %s,
+            "NetIncomefromContinuingOperations" = %s, "NetIncome" = %s, "EPSrecurring" = %s,
+            "EPSBasicBeforeExtraordinaries" = %s, "EPSDiluted" = %s, "EBITDA" = %s,
+            "PricetoEarningsRatio" = %s, "PricetoSalesRatio" = %s, "GrossMargin" = %s,
+            "OperatingMargin" = %s, "NetMargin" = %s, "SharesOutstanding" = %s,
+            "MarketCapitalization" = %s
+        WHERE "Ticker" = %s;
+        """
+        cur.execute(update_query, (
+            row['TotalRevenue'], row['CostofGoodsSoldInclDA'], row['GrossProfit'],
+            row['SellingGeneralandAdministrativeExclOther'], row['OtherOperatingExpense'],
+            row['OperatingIncome'], row['InterestExpense'], row['UnusualExpense'],
+            row['NetIncomeBeforeTaxes'], row['IncomeTaxes'], row['ConsolidatedNetIncome'],
+            row['NetIncomefromContinuingOperations'], row['NetIncome'], row['EPSrecurring'],
+            row['EPSBasicBeforeExtraordinaries'], row['EPSDiluted'], row['EBITDA'],
+            row['PricetoEarningsRatio'], row['PricetoSalesRatio'], row['GrossMargin'],
+            row['OperatingMargin'], row['NetMargin'], row['SharesOutstanding'],
+            row['MarketCapitalization'], ticker
+        ))
+    else:
+        # Insert a new record
+        insert_query = """
+        INSERT INTO IncomeStatement ("Ticker", "TotalRevenue", "CostofGoodsSoldInclDA", "GrossProfit",
+        "SellingGeneralandAdministrativeExclOther", "OtherOperatingExpense", "OperatingIncome", "InterestExpense",
+        "UnusualExpense", "NetIncomeBeforeTaxes", "IncomeTaxes", "ConsolidatedNetIncome",
+        "NetIncomefromContinuingOperations", "NetIncome", "EPSrecurring", "EPSBasicBeforeExtraordinaries",
+        "EPSDiluted", "EBITDA", "PricetoEarningsRatio", "PricetoSalesRatio", "GrossMargin", "OperatingMargin",
+        "NetMargin", "SharesOutstanding", "MarketCapitalization")
+        VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s);
+        """
+        cur.execute(insert_query, (
+            ticker, row['TotalRevenue'], row['CostofGoodsSoldInclDA'], row['GrossProfit'],
+            row['SellingGeneralandAdministrativeExclOther'], row['OtherOperatingExpense'],
+            row['OperatingIncome'], row['InterestExpense'], row['UnusualExpense'],
+            row['NetIncomeBeforeTaxes'], row['IncomeTaxes'], row['ConsolidatedNetIncome'],
+            row['NetIncomefromContinuingOperations'], row['NetIncome'], row['EPSrecurring'],
+            row['EPSBasicBeforeExtraordinaries'], row['EPSDiluted'], row['EBITDA'],
+            row['PricetoEarningsRatio'], row['PricetoSalesRatio'], row['GrossMargin'],
+            row['OperatingMargin'], row['NetMargin'], row['SharesOutstanding'],
+            row['MarketCapitalization']
+        ))
+
+# Commit the changes to the database
+conn.commit()
+
+# Close the cursor and the connection
+cur.close()
+conn.close()

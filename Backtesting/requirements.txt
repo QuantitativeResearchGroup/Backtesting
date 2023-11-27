@@ -1,0 +1,13 @@
+# pip install -r requirements.txt
+# pip list  # to see the versions of every package
+pandas==<2.1.2>
+yfinance==<0.2.31>
+scipy==<1.11.3>
+seaborn ==<0.13.0>
+matplotlib==<3.8.1>
+matplotlib-inline==<0.1.6>
+multitasking==<0.0.11>
+numpy==<1.26.1>
+backtrader==<1.9.78.123>
+beautifulsoup4==<4.12.2>
+psycopg2-binary==<2.9.0>
