@@ -1,6 +1,6 @@
 import yfinance as yf
 from SP500Wiki import *
-from methodsNEW import *
+from Methods import *
 
 
 # Establish the database connection and cursor

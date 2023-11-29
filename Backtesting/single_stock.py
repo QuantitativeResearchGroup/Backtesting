@@ -30,8 +30,6 @@ if __name__ == "__main__":
         cerebro.addanalyzer(btanalyzers.SharpeRatio, _name = "sharpe")
 
         print(f'Starting Portfolio Value for {ticker}: %.2f' % cerebro.broker.getvalue())
-        #cerebro.add_signal(bt.SIGNAL_LONGSHORT, MySignal)
-
         back = cerebro.run()
         final =cerebro.broker.getvalue()
         print(f'Final Portfolio Value for {ticker}: %.2f' % final)

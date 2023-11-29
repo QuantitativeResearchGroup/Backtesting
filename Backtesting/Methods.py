@@ -8,10 +8,10 @@ from datetime import datetime, timedelta
 def establish_database_connection():
     try:
         conn = psycopg2.connect(
-            dbname='postgres',
+            dbname='EC2DB',
             user='postgres',
-            password='bobwashere',
-            host='localhost',
+            password='postgres',
+            host='18.219.37.179',
             port=5432
         )
         print("Connection successful!")

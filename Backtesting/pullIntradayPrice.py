@@ -1,7 +1,7 @@
 '''
-- Pull Stock Price Data -
-Retrieve Intraday and daily price data for stocks from sp500wiki table. It tabulates the data into two tables:
-yfintradaprice and yfdailyprice. It checks the table for most recent date netry and starts the fill from that 
+- Pull Intraday Stock Price Data -
+Retrieve Intraday price data for stocks from sp500wiki table. It tabulates the data into two tables:
+yfintradaprice. It checks the table for most recent date netry and starts the fill from that 
 date to current datestamp.
 '''
 
@@ -31,17 +31,8 @@ for ticker_symbol in tickers:
   # Use enddate if no latest date is found
     
     # Get daily data
-    data = ticker.history(start=startdate, end=enddate)
     data2 = yf.download(ticker_symbol, period="1d", interval="1m", start=startdate, end=enddate)
-    
-    if not data.empty:
-        data['Ticker'] = ticker_symbol
-        data.reset_index(inplace=True)
-        data['Date'] = data['Date'].dt.strftime('%Y-%m-%d')
-        data_list = data.to_dict('records')
-        update_or_insert_yf_daily_data(cur, ticker_symbol, data_list)
 
-    # Get intraday data
     if not data2.empty:
         data2.reset_index(inplace=True)
         data2['Date'] = data2['Datetime'].dt.strftime('%Y-%m-%d %H:%M:%S')
